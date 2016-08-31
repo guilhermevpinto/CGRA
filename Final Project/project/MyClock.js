@@ -1,0 +1,102 @@
+function MyClock(scene, slices, stacks) {
+ 	CGFobject.call(this,scene);
+	
+	this.delta = 0;
+	this.previousTime = 0;
+	
+	this.first = 0;
+
+	this.slices = slices;
+	this.stacks = stacks;
+
+	this.cilindro = new MyCylinder(this.scene, this.slices, this.stacks);
+	this.cilindro.initBuffers();
+
+	this.topo = new MyCircle(this.scene, this.slices);
+	this.topo.initBuffers();
+
+	this.horas = new MyClockHand(this.scene);
+	this.horas.initBuffers();
+	this.segundos = new MyClockHand(this.scene);
+	this.segundos.initBuffers();
+	this.minutos = new MyClockHand(this.scene);
+	this.minutos.initBuffers();
+
+	//3:30:45
+	this.horas.setAngle(-90);
+	this.minutos.setAngle(0);
+	this.segundos.setAngle(90);
+
+	this.mostrador = new CGFappearance(this.scene);
+	this.mostrador.loadTexture("./resources/images/clock.png");
+	this.mostrador.setTextureWrap('CLAMP_TO_EDGE', 'CLAMP_TO_EDGE');
+	this.mostrador.setSpecular(0.2, 0.2, 0.2, 1);
+	this.mostrador.setShininess(10);
+	this.mostrador.setDiffuse(0.8, 0.8, 0.8, 1);
+
+	this.material = new CGFappearance(this.scene);
+	this.material.setAmbient(0.5, 0.5, 0.5, 1);
+	this.material.setDiffuse(0.5, 0.5, 0.5, 1);
+	this.material.setSpecular(0.5, 0.5, 0.5, 1);
+	this.material.setShininess(40);
+
+ };
+
+ MyClock.prototype = Object.create(CGFobject.prototype);
+ MyClock.prototype.constructor = MyClock;
+
+ MyClock.prototype.display = function() {
+
+	this.scene.pushMatrix();
+	this.mostrador.apply();
+	this.topo.display();
+	this.scene.popMatrix();
+
+	this.scene.pushMatrix();
+	this.material.apply();
+	this.scene.scale(1, 1, 0.3);
+	this.cilindro.display();
+	this.scene.popMatrix();
+
+	this.scene.pushMatrix();
+	this.material.apply();
+	this.scene.rotate(Math.PI, 1, 0, 0);
+	this.scene.rotate(-this.segundos.angle * Math.PI / 180, 0, 0, 1);
+	this.segundos.display();
+	this.scene.popMatrix();
+	
+	this.scene.pushMatrix();
+	this.material.apply();
+	this.scene.rotate(Math.PI, 1, 0, 0);
+	this.scene.rotate(-this.minutos.angle * Math.PI / 180, 0, 0, 1);
+	this.scene.scale(1, 0.7, 1);
+	this.minutos.display();
+	this.scene.popMatrix();
+
+	this.scene.pushMatrix();
+	this.material.apply();
+	this.scene.rotate(Math.PI, 1, 0, 0);
+	this.scene.rotate(-this.horas.angle * Math.PI / 180, 0, 0, 1);
+	this.scene.scale(1, 0.4, 1);
+	this.horas.display();
+	this.scene.popMatrix();
+
+ };
+
+MyClock.prototype.update = function(currTime) {
+	
+	this.delta = currTime - this.previousTime;
+    this.previousTime = currTime;
+
+	if (this.first == 0)
+	{
+		this.delta = 0;
+		this.first = 1;
+	}
+	else
+	{
+		this.segundos.setAngle(this.segundos.angle + 360 / 60 * (this.delta / 1000));
+		this.minutos.setAngle(this.minutos.angle + 360 / (60 * 60) * (this.delta / 1000));
+		this.horas.setAngle(this.horas.angle + 360 / (60 * 60 * 60) * (this.delta / 1000));
+	}
+};
